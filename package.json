@@ -26,6 +26,10 @@
         "watch": [
             "*.*"
         ],
-        "ext": "js html scss sass json svg png jpg jpeg"
+        "ext": "js html scss sass json svg png jpg jpeg",
+        "ignore": [
+            "/_repository",
+            "/_merge"
+        ]
     }
 }
