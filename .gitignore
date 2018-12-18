@@ -1,4 +1,4 @@
-/_repository
+/_repository/*
 /node_modules
-/_merge
+/_merge/*
 git.json
