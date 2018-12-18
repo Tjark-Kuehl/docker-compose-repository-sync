@@ -1,0 +1,31 @@
+{
+    "name": "sync",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "nodemon index.js --exec babel-node",
+        "update": "npm prune && npm-check -u"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@babel/core": "^7.2.2",
+        "@babel/node": "^7.2.2",
+        "@babel/preset-env": "^7.2.0",
+        "nodemon": "^1.18.9",
+        "simple-git": "^1.107.0",
+        "walk-promise": "^0.2.0"
+    },
+    "devDependencies": {
+        "eslint": "^5.10.0",
+        "eslint-plugin-node": "^8.0.0"
+    },
+    "nodemonConfig": {
+        "delay": "50",
+        "watch": [
+            "*.*"
+        ],
+        "ext": "js html scss sass json svg png jpg jpeg"
+    }
+}
