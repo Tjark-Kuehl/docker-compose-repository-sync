@@ -1,0 +1,8 @@
+{
+    "minPullIntervalInSec": 60,
+    "dockerComposeFileDir": "vue",
+    "repo": {
+        "url": "https://github.com/my-repository.git",
+        "branch": "master"
+    }
+}

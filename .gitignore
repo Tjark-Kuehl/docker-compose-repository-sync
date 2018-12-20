@@ -1,4 +1,2 @@
-/_repository/*
 /node_modules
-/_merge/*
-git.json
+daemon-config.json
