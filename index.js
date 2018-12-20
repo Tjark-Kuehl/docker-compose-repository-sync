@@ -1,70 +1,81 @@
 import path from 'path';
-import fs from 'fs';
-const fsPromises = fs.promises;
+import { promises as fs } from 'fs';
 import gitP from 'simple-git/promise';
+import { spawn } from 'child_process';
+//const { spawn } = require('child_process');
 
 import cfg from './config/git.json';
 import walk from 'walk-promise';
 
 (async () => {
-    const workingDir = path.join(__dirname, '_repository');
+    const repoDir = path.join(__dirname, '_repository');
 
-    /* Check if working dir exists */
-    await fs.stat(workingDir, error => {
-        // Create if it doesnt exist
-        if (error) {
-            fs.mkdir(workingDir, { recursive: true }, err => {
-                if (err) throw err;
-            });
-        }
-    });
+    /* Create default directories */
+    await fs.mkdir(repoDir, { recursive: true });
+    await fs.mkdir(path.join(__dirname, '_merge'), { recursive: true });
 
-    const git = gitP(workingDir);
+    /* Set git dir */
+    const git = gitP(repoDir);
 
-    /* Check if local isRepo */
+    /* Check if the repoDir is a valid repository */
     const isRepo = await git.checkIsRepo();
+    console.log(isRepo);
     if (!isRepo) {
-        console.log('Initializing repository');
-        await git.init();
-
-        console.log(`Adding remote '${cfg.repository}'`);
-        await git.addRemote('origin', cfg.repository);
-
-        console.log('Fetching...');
-        git.fetch();
+        await initGitProject(cfg.repository);
     }
 
-    /* Pulls newest changes */
     console.log('Pulling changes...');
-    await git.pull('origin', 'master');
+    console.log(await git.pull('origin', 'master'));
 
-    /* Copy merge files */
+    return;
     console.log('Copy merge files...');
-    for (let file of await walk(path.join(__dirname, '_merge'))) {
-        const fPath = file.root.replace(path.join(__dirname, '_merge'), '');
-        await fsPromises.mkdir(path.join(__dirname, '_repository', fPath), { recursive: true });
-        await fsPromises.copyFile(
-            path.join(__dirname, '_merge', fPath, file.name),
-            path.join(__dirname, '_repository', fPath, file.name)
+    await copyMergeFiles(__dirname);
+
+    await startContainers(path.join(repoDir, 'vue'));
+})();
+
+async function initGitProject(repoUrl) {
+    console.log('Initializing repository');
+    await git.init();
+
+    console.log(`Adding remote '${repoUrl}'`);
+    await git.addRemote('origin', repoUrl);
+
+    // console.log('Fetching...');
+    // git.fetch();
+}
+
+async function copyMergeFiles(baseDir) {
+    for (const file of await walk(path.join(baseDir, '_merge'))) {
+        const fPath = file.root.replace(path.join(baseDir, '_merge'), '');
+        await fs.mkdir(path.join(baseDir, '_repository', fPath), { recursive: true });
+        await fs.copyFile(
+            path.join(baseDir, '_merge', fPath, file.name),
+            path.join(baseDir, '_repository', fPath, file.name)
         );
         console.log(`Copy file '${file.name}'`);
     }
+}
 
-    /* Create process */
-    const { spawn } = require('child_process');
-    await new Promise(resolve => {
+/**
+ * Creates a docker-copose up process
+ * @return Promise<Number>
+ */
+function startContainers(cwd) {
+    return new Promise(resolve => {
         const ls = spawn('docker-compose', ['up', '--build', '-d'], {
-            cwd: path.join(__dirname, '_repository', 'vue'),
+            cwd,
         });
 
-        ls.stdout.on('data', data => {
-            console.log(`${data}`);
-        });
+        function logToConsole(message) {
+            if (message && message.length) {
+                console.log(String(message));
+            }
+        }
 
-        ls.stderr.on('data', data => {
-            console.error(`Error: ${data}`);
-        });
+        ls.stdout.on('data', logToConsole);
+        ls.stderr.on('data', logToConsole);
 
         ls.on('close', resolve);
     });
-})();
+}
