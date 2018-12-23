@@ -10,7 +10,9 @@ const repoDir = path.join(__dirname, '..', '_repository')
 const mergeDir = path.join(__dirname, '..', '_merge')
 const dockerComposeFileDir = path.join(repoDir, cfg.dockerComposeFileDir)
 
-let git
+let git = undefined
+let firstStart = true
+
 ;(async () => {
     /* Create default directories */
     await createDir(repoDir)
@@ -24,25 +26,28 @@ let git
         await cloneRepo(cfg.repo.url)
     }
 
+    /* Merging files with repository */
     console.log('Copy merge files...')
     await copyMergeFiles()
 
-    await startContainers(dockerComposeFileDir)
-
+    /* Starting the program loop */
     await loop()
 })()
 
 async function loop() {
+    /* Checking for git changes */
     const {
         summary: { changes, insertions, deletions }
     } = await git.pull('origin', cfg.repo.branch)
 
-    console.log(changes, insertions, deletions)
-
-    if (changes || insertions || deletions) {
+    /* Restart containers on change */
+    if (changes || insertions || deletions || firstStart) {
+        console.log(`Changes: ${changes} Insertions: ${insertions} Deletions: ${deletions}`)
         await startContainers(dockerComposeFileDir)
+        firstStart = false
     }
 
+    /* Restart loop */
     setTimeout(loop, cfg.minPullIntervalInSec * 1000)
 }
 
@@ -56,9 +61,6 @@ async function cloneRepo(repoUrl) {
 
     console.log(`Adding remote '${repoUrl}'`)
     await git.addRemote('origin', repoUrl)
-
-    // console.log('Fetching...');
-    // git.fetch();
 }
 
 async function copyMergeFiles() {
