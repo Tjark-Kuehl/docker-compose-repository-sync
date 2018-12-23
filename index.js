@@ -6,7 +6,7 @@ import { spawn } from 'child_process'
 import cfg from './config/daemon-config.json'
 import walk from 'walk-promise'
 
-const repoDir = path.join(__dirname, '..', '_repository')
+const repoDir = path.join(__dirname, '..', '_repository', cfg.repo.branch)
 const mergeDir = path.join(__dirname, '..', '_merge')
 const dockerComposeFileDir = path.join(repoDir, cfg.dockerComposeFileDir)
 
