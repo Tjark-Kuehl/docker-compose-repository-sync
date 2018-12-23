@@ -1,5 +1,5 @@
 {
-    "minPullIntervalInSec": 60,
+    "minPullIntervalInSec": 10,
     "dockerComposeFileDir": "vue",
     "repo": {
         "url": "https://github.com/my-repository.git",

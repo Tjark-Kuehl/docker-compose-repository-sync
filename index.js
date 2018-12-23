@@ -33,11 +33,13 @@ let git
 })()
 
 async function loop() {
-    // console.log(await git.pull('origin', cfg.repo.branch))
-    const update = await git.pull('origin', cfg.repo.branch)
-    console.log(update)
+    const {
+        summary: { changes, insertions, deletions }
+    } = await git.pull('origin', cfg.repo.branch)
 
-    if (update.files && update.files.length) {
+    console.log(changes, insertions, deletions)
+
+    if (changes || insertions || deletions) {
         await startContainers(dockerComposeFileDir)
     }
 
