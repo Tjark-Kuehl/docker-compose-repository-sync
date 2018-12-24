@@ -38,7 +38,7 @@ async function loop() {
     /* Checking for git changes */
     const {
         summary: { changes, insertions, deletions }
-    } = await git.pull('origin', cfg.repo.branch)
+    } = await git.pull('origin', cfg.repo.branch, { '--rebase': 'true' })
 
     /* Restart containers on change */
     if (changes || insertions || deletions || firstStart) {
